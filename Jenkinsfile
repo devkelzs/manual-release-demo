@@ -8,12 +8,14 @@ pipeline {
 
     stages {
 
+        // ------------------------------
         stage('Check OS') {
             steps {
                 sh 'uname -a || echo Windows detected'
             }
         }
 
+        // ------------------------------
         stage('Checkout Code') {
             steps {
                 echo 'Checking out source code...'
@@ -21,6 +23,7 @@ pipeline {
             }
         }
 
+        // ------------------------------
         stage('Build') {
             steps {
                 echo 'Building the application with Maven...'
@@ -28,6 +31,7 @@ pipeline {
             }
         }
 
+        // ------------------------------
         stage('Test Artifact') {
             steps {
                 echo 'Verifying JAR exists...'
@@ -35,6 +39,7 @@ pipeline {
             }
         }
 
+        // ------------------------------
         stage('Publish Artifact') {
             steps {
                 script {
@@ -43,12 +48,15 @@ pipeline {
 
                     echo "Publishing artifact version ${version} to Artifactory simulation"
 
-                    sh "mkdir -p ${env.HOME}/artifactory/com/example/employee-api/${version}"
-                    sh "cp target/employee-api-${version}.jar ${env.HOME}/artifactory/com/example/employee-api/${version}/"
+                    sh """
+                        mkdir -p ${env.HOME}/artifactory/com/example/employee-api/${version}
+                        cp target/employee-api-${version}.jar ${env.HOME}/artifactory/com/example/employee-api/${version}/
+                    """
                 }
             }
         }
 
+        // ------------------------------
         stage('Deploy to TEST') {
             steps {
                 script {
@@ -60,34 +68,35 @@ pipeline {
                     echo "Deploying version ${version} to TEST"
 
                     sh """
-                        echo "Checking for running TEST instance"
+                        echo "Stopping any running TEST instance..."
                         PID=\$(ps -ef | grep employee-api | grep -v grep | awk '{print \$2}' | head -n 1)
-
                         if [ -n "\$PID" ]; then
-                        echo "Stopping existing process with PID \$PID"
-                        kill -9 \$PID
+                            echo "Stopping existing process with PID \$PID"
+                            kill -9 \$PID
                         else
-                        echo "No existing TEST process found"
+                            echo "No existing TEST process found"
                         fi
 
-                        echo "Copying artifact to TEST environment"
+                        echo "Copying artifact to TEST environment..."
+                        mkdir -p ${testEnvPath}
                         cp ${artifactPath} ${testEnvPath}/
 
-                        echo "Starting application in TEST"
+                        echo "Starting application in TEST..."
                         nohup java -jar ${testEnvPath}/employee-api-${version}.jar \
-                        --server.port=8081 > ${testEnvPath}/test.log 2>&1 & disown
+                            --server.port=8081 > ${testEnvPath}/test.log 2>&1 &
                     """
                 }
             }
         }
-    }
+
+    } // stages
 
     post {
         success {
-            echo 'Build successful 🎉'
+            echo 'Build and TEST deployment successful 🎉'
         }
         failure {
-            echo 'Build failed ❌'
+            echo 'Build or TEST deployment failed ❌'
         }
     }
 }
