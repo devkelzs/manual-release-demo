@@ -35,24 +35,25 @@ pipeline {
             }
         }
 
-    } 
-        stage('Publish Artifact')
+        stage('Publish Artifact') {
             steps {
                 script {
-                     // Read version from pom.xml
-                     def pom = readMavenPom file: 'pom.xml'
-                     def version = pom.version
+                    // Read version from pom.xml
+                    def pom = readMavenPom file: 'pom.xml'
+                    def version = pom.version
 
-                     echo "Publishing artifact version ${version} to Artifactory simulation"
+                    echo "Publishing artifact version ${version} to Artifactory simulation"
 
-                     // Create versioned folder
-                     sh "mkdir -p ~/artifactory/com/example/employee-api/${version}"
+                    // Create versioned folder
+                    sh "mkdir -p ~/artifactory/com/example/employee-api/${version}"
 
-                     // Copy JAR
+                    // Copy JAR
                     sh "cp target/employee-api-${version}.jar ~/artifactory/com/example/employee-api/${version}/"
                 }
             }
-    
+        }
+    }
+
     post {
         success {
             echo 'Build successful 🎉'
