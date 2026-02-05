@@ -82,9 +82,9 @@ pipeline {
                         cp ${artifactPath} ${testEnvPath}/
 
                         # Start application safely in background
-                        setsid java -jar ${testEnvPath}/employee-api-${version}.jar \
-                            --server.address=0.0.0.0 --server.port=${testPort} \
-                            > ${testEnvPath}/test.log 2>&1 &
+                        nohup java -jar /var/lib/jenkins/environments/test/employee-api-1.0.0.jar \
+                            --server.address=0.0.0.0 --server.port=8082 > /var/lib/jenkins/environments/test/test.log 2>&1 &
+
                     """
                 }
             }
