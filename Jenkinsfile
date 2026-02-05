@@ -38,41 +38,39 @@ pipeline {
         stage('Publish Artifact') {
             steps {
                 script {
-                    // Read version from pom.xml
                     def pom = readMavenPom file: 'pom.xml'
                     def version = pom.version
 
                     echo "Publishing artifact version ${version} to Artifactory simulation"
 
-                    // Create versioned folder
-                    sh "mkdir -p ~/artifactory/com/example/employee-api/${version}"
-
-                    // Copy JAR
-                    sh "cp target/employee-api-${version}.jar ~/artifactory/com/example/employee-api/${version}/"
+                    sh "mkdir -p ${env.HOME}/artifactory/com/example/employee-api/${version}"
+                    sh "cp target/employee-api-${version}.jar ${env.HOME}/artifactory/com/example/employee-api/${version}/"
                 }
             }
         }
 
         stage('Deploy to TEST') {
             steps {
-                def pom = readMavenPom file: 'pom.xml'
-                def version = pom.version
-                def artifactPath = "${env.HOME}/artifactory/com/example/employee-api/${version}/employee-api-${version}.jar"
-                def testEnvPath = "${env.HOME}/environments/test"
+                script {
+                    def pom = readMavenPom file: 'pom.xml'
+                    def version = pom.version
+                    def artifactPath = "${env.HOME}/artifactory/com/example/employee-api/${version}/employee-api-${version}.jar"
+                    def testEnvPath = "${env.HOME}/environments/test"
 
-                echo "Deploying version ${version} to TEST"
+                    echo "Deploying version ${version} to TEST"
 
-                sh """
-                    echo "Stopping any existing TEST instance"
-                    pkill -f "employee-api" || true
+                    sh """
+                        echo "Stopping any existing TEST instance"
+                        pkill -f employee-api || true
 
-                    echo "Copying artifact to TEST environment"
-                    cp ${artifactPath} ${testEnvPath}/
+                        echo "Copying artifact to TEST environment"
+                        cp ${artifactPath} ${testEnvPath}/
 
-                    echo "Starting application in TEST"
-                    nohup java -jar ${testEnvPath}/employee-api-${version}.jar \
-                        --server.port=8081 > ${testEnvPath}/test.log 2>&1 &
-            """
+                        echo "Starting application in TEST"
+                        nohup java -jar ${testEnvPath}/employee-api-${version}.jar \
+                          --server.port=8081 > ${testEnvPath}/test.log 2>&1 &
+                    """
+                }
             }
         }
     }
