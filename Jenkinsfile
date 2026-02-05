@@ -61,7 +61,7 @@ pipeline {
 
                     sh """
                         echo "Stopping any existing TEST instance"
-                        pkill -f employee-api || true
+                        pgrep -f employee-api && pkill -f employee-api || echo "No existing instance running"
 
                         echo "Copying artifact to TEST environment"
                         cp ${artifactPath} ${testEnvPath}/
