@@ -81,9 +81,10 @@ pipeline {
                         mkdir -p ${testEnvPath}
                         cp ${artifactPath} ${testEnvPath}/
 
-                        echo "Starting application in TEST..."
-                        nohup java -jar ${testEnvPath}/employee-api-${version}.jar \
-                            --server.port=8082 > ${testEnvPath}/test.log 2>&1 & 
+                        # Start application safely in background
+                        setsid java -jar ${testEnvPath}/employee-api-${version}.jar \
+                            --server.address=0.0.0.0 --server.port=${testPort} \
+                            > ${testEnvPath}/test.log 2>&1 &
                     """
                 }
             }
