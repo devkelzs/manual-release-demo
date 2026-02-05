@@ -75,7 +75,7 @@ pipeline {
 
                         echo "Starting application in TEST"
                         nohup java -jar ${testEnvPath}/employee-api-${version}.jar \
-                        --server.port=8081 > ${testEnvPath}/test.log 2>&1 &
+                        --server.port=8081 > ${testEnvPath}/test.log 2>&1 & disown
                     """
                 }
             }
