@@ -64,7 +64,7 @@ pipeline {
                     def version = pom.version
                     def artifactPath = "${env.HOME}/artifactory/com/example/employee-api/${version}/employee-api-${version}.jar"
                     def testEnvPath = "${env.HOME}/environments/test"
-
+                    def testPort = 8082 
                     echo "Deploying version ${version} to TEST"
 
                     sh """
