@@ -60,15 +60,22 @@ pipeline {
                     echo "Deploying version ${version} to TEST"
 
                     sh """
-                        echo "Stopping any existing TEST instance"
-                        pgrep -f employee-api && pkill -f employee-api || echo "No existing instance running"
+                        echo "Checking for running TEST instance"
+                        PID=\$(ps -ef | grep employee-api | grep -v grep | awk '{print \$2}' | head -n 1)
+
+                        if [ -n "\$PID" ]; then
+                        echo "Stopping existing process with PID \$PID"
+                        kill -9 \$PID
+                        else
+                        echo "No existing TEST process found"
+                        fi
 
                         echo "Copying artifact to TEST environment"
                         cp ${artifactPath} ${testEnvPath}/
 
                         echo "Starting application in TEST"
                         nohup java -jar ${testEnvPath}/employee-api-${version}.jar \
-                          --server.port=8081 > ${testEnvPath}/test.log 2>&1 &
+                        --server.port=8081 > ${testEnvPath}/test.log 2>&1 &
                     """
                 }
             }
