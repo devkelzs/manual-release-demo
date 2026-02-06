@@ -90,6 +90,44 @@ pipeline {
             }
         }
 
+        stage('Deploy to UAT') {
+    steps {
+        script {
+            def pom = readMavenPom file: 'pom.xml'
+            def version = pom.version
+            def artifactPath = "${env.HOME}/artifactory/com/example/employee-api/${version}/employee-api-${version}.jar"
+            def uatEnvPath = "${env.HOME}/environments/uat"
+            def uatPort = "8083"
+
+            // Manual approval step
+            input message: "Approve deployment to UAT?", ok: "Deploy"
+
+            echo "Deploying version ${version} to UAT"
+
+            sh """
+                echo "Stopping any existing UAT instance..."
+                PID=\$(ps -ef | grep employee-api | grep -v grep | awk '{print \$2}' | head -n 1)
+                if [ -n "\$PID" ]; then
+                    echo "Stopping existing process with PID \$PID"
+                    kill -9 \$PID
+                else
+                    echo "No existing UAT process found"
+                fi
+
+                echo "Copying artifact to UAT environment..."
+                mkdir -p ${uatEnvPath}
+                cp ${artifactPath} ${uatEnvPath}/
+
+                echo "Starting application in UAT..."
+                nohup java -jar ${uatEnvPath}/employee-api-${version}.jar \
+                    --server.address=0.0.0.0 --server.port=${uatPort} \
+                    > ${uatEnvPath}/uat.log 2>&1 &
+            """
+        }
+    }
+}
+
+
     } // stages
 
     post {
