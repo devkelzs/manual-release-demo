@@ -119,9 +119,10 @@ pipeline {
                 cp ${artifactPath} ${uatEnvPath}/
 
                 echo "Starting application in UAT..."
-                nohup java -jar ${uatEnvPath}/employee-api-${version}.jar \
-                    --server.address=0.0.0.0 --server.port=${uatPort} \
-                    > ${uatEnvPath}/uat.log 2>&1 &
+                sudo -u jenkins nohup java -jar /var/lib/jenkins/environments/uat/employee-api-1.0.0.jar \
+                 --server.address=0.0.0.0 \
+                 --server.port=8083 \
+                 > /var/lib/jenkins/environments/uat/uat.log 2>&1 &
             """
         }
     }
